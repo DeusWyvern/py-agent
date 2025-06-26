@@ -5,11 +5,13 @@ from google import genai
 from google.genai import types
 
 from prompts import system_prompt
-from call_function import available_functions
+from call_function import available_functions, call_function
 
 
 def main():
     load_dotenv()
+
+    max_iterations = 20
 
     verbose = "--verbose" in sys.argv
     args = [arg for arg in sys.argv[1:] if not arg.startswith("--")]
@@ -32,7 +34,8 @@ def main():
         types.Content(role="user", parts=[types.Part(text=user_prompt)]),
     ]
 
-    generate_content(client, messages, verbose)
+    for i in range(1, max_iterations):
+        generate_content(client, messages, verbose)
 
 
 def generate_content(client, messages, verbose):
@@ -53,8 +56,24 @@ def generate_content(client, messages, verbose):
     if not agent_response.function_calls:
         return agent_response.text
 
+    function_responses = []
     for function_call_part in agent_response.function_calls:
         print(f"Calling function: {function_call_part.name}({function_call_part.args})")
+        call_function_result = call_function(function_call_part, verbose)
+        if (
+            not call_function_result.parts[0].function_response.response
+            or not call_function_result.parts
+        ):
+            raise Exception("ERROR: empty function call result")
+        elif verbose:
+            print(
+                f"-> {call_function_result.parts[0].function_response.response['result']}"
+            )
+        function_responses.append((call_function_result.parts[0]))
+
+        if not function_responses:
+            raise Exception("no function responses generate, exiting.")
+        return function_responses
 
 
 if __name__ == "__main__":
