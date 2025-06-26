@@ -20,6 +20,7 @@ class Calculator:
         if not expression or expression.isspace():
             return None
         tokens = expression.strip().split()
+        print(f"Tokens: {tokens}")
         return self._evaluate_infix(tokens)
 
     def _evaluate_infix(self, tokens):

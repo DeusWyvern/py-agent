@@ -1,5 +1,6 @@
 import os
 from google.genai import types
+from config import MAX_CHARS
 
 
 def get_file_content(working_directory, file_path):
@@ -15,8 +16,6 @@ def get_file_content(working_directory, file_path):
         return f'Error: "{file_path}" is not a file'
 
     try:
-        MAX_CHARS = 10000
-
         with open(full_path) as f:
             file_content_string = f.read(MAX_CHARS)
             if len(f.read()) > MAX_CHARS:
